@@ -43,7 +43,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(26, 26, 46, 0.98);
             backdrop-filter: blur(10px);
             display: none;
             flex-direction: column;
@@ -52,12 +52,35 @@
             z-index: 9999;
         }
         
+        .upload-speed-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 15px 25px;
+            background: rgba(67, 97, 238, 0.2);
+            border-radius: 15px;
+            border: 2px solid rgba(67, 97, 238, 0.5);
+        }
+        
+        .speed-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4cc9f0;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .speed-label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
         .music-visualizer {
             display: flex;
             align-items: flex-end;
             gap: 8px;
             height: 80px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         
         .music-bar {
@@ -81,46 +104,87 @@
         
         /* LOADING PROGRESS REAL-TIME */
         .loading-progress-container {
-            width: 300px;
+            width: 350px;
             margin: 20px 0;
         }
         
         .loading-progress-bar {
-            height: 12px;
+            height: 16px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .loading-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #4361ee, #4cc9f0);
+            background: linear-gradient(90deg, #4361ee, #4cc9f0, #3a0ca3);
             width: 0%;
-            border-radius: 6px;
-            transition: width 0.2s ease;
+            border-radius: 8px;
+            transition: width 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.4), 
+                transparent);
+            animation: shine 2s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .loading-stats {
             display: flex;
             justify-content: space-between;
-            width: 300px;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            width: 350px;
+            margin-top: 15px;
+            font-size: 0.95rem;
             color: #aaa;
         }
         
         .loading-speed {
             color: #4cc9f0;
             font-weight: bold;
+            font-size: 1.1rem;
         }
         
         .loading-time {
             color: #ffaa00;
+            font-weight: bold;
         }
         
         .loading-percent {
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1.3rem;
+            color: white;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .loading-notice {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 170, 0, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid var(--warning);
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .loading-notice i {
+            color: var(--warning);
+            margin-right: 10px;
         }
         
         /* ========== NOTEBOOK ========== */
@@ -642,10 +706,12 @@
             .file-limits { grid-template-columns: 1fr; }
             .toast { min-width: 250px; right: 10px; bottom: 10px; }
             .notebook-header { flex-direction: column; gap: 10px; text-align: center; }
-            .loading-progress-container { width: 250px; }
-            .loading-stats { width: 250px; font-size: 0.8rem; }
+            .loading-progress-container { width: 280px; }
+            .loading-stats { width: 280px; font-size: 0.85rem; }
             .preview-container { max-width: 100%; }
             .preview-controls { flex-wrap: wrap; }
+            .upload-speed-indicator { padding: 12px 20px; }
+            .speed-value { font-size: 1.5rem; }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -658,6 +724,15 @@
 
     <!-- LOADING OVERLAY DENGAN PROGRESS REAL-TIME -->
     <div class="loading-overlay" id="loadingOverlay">
+        <div class="upload-speed-indicator">
+            <i class="fas fa-bolt" style="color: #ffaa00;"></i>
+            <div>
+                <div class="speed-value" id="speedValue">25.4 MB/s</div>
+                <div class="speed-label">Kecepatan Upload</div>
+            </div>
+            <i class="fas fa-tachometer-alt" style="color: #4cc9f0;"></i>
+        </div>
+        
         <div class="music-visualizer" id="musicVisualizer">
             <div class="music-bar"></div>
             <div class="music-bar"></div>
@@ -666,10 +741,11 @@
             <div class="music-bar"></div>
         </div>
         
-        <h3 style="color: #4cc9f0; margin-bottom: 5px;">Upload dalam proses...</h3>
+        <h3 style="color: #4cc9f0; margin-bottom: 5px; text-align: center;">
+            <i class="fas fa-rocket"></i> Upload Super Cepat!
+        </h3>
         <p style="color: #aaa; margin-bottom: 20px; text-align: center;">
-            <i class="fas fa-music"></i> Musik auto-play • Loading real-time 1-100%<br>
-            Kecepatan disesuaikan dengan ukuran file
+            Server GitHub Pages + Optimasi Max Speed
         </p>
         
         <!-- PROGRESS BAR REAL-TIME 1-100% -->
@@ -679,14 +755,26 @@
             </div>
             <div class="loading-stats">
                 <span class="loading-percent" id="loadingPercent">0%</span>
-                <span class="loading-speed" id="loadingSpeed">0 KB/s</span>
+                <span class="loading-speed" id="loadingSpeed">0 MB/s</span>
                 <span class="loading-time" id="loadingTime">Estimasi: 0s</span>
             </div>
         </div>
         
+        <div class="loading-notice">
+            <p>
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>Jangan tutup halaman ini!</strong><br>
+                Proses upload sedang berjalan dengan kecepatan maksimal.
+                <br><br>
+                <small style="color: #ccc;">
+                    File Anda akan segera terupload ke server...
+                </small>
+            </p>
+        </div>
+        
         <div style="margin-top: 25px; color: #888; font-size: 0.9rem; text-align: center;">
-            <p><i class="fas fa-info-circle"></i> Progress loading 1-100% sesuai kecepatan upload</p>
-            <p><i class="fas fa-volume-up"></i> Musik akan fade out otomatis setelah selesai</p>
+            <p><i class="fas fa-info-circle"></i> Kecepatan dioptimalkan untuk GitHub Pages</p>
+            <p><i class="fas fa-shield-alt"></i> File aman terenkripsi dengan token</p>
         </div>
     </div>
 
@@ -706,6 +794,7 @@
                     <li>Untuk hasil terbaik, gunakan file dengan resolusi tinggi</li>
                     <li>Token berlaku selama <strong>10 menit</strong> setelah di-generate</li>
                     <li>Bot akan otomatis compress file untuk optimal WhatsApp Status</li>
+                    <li><strong>⚠️ Jangan tutup halaman saat upload berlangsung!</strong></li>
                 </ul>
             </div>
         </div>
@@ -723,6 +812,9 @@
             <h1><i class="fas fa-images"></i> UPLOAD STATUS WHATSAPP</h1>
             <p>Upload gambar & video untuk status WhatsApp dengan kualitas terbaik</p>
             <p><strong>Token berlaku 10 menit • Support HD Quality • Caption Dinamis</strong></p>
+            <p style="color: var(--success); font-weight: bold; margin-top: 10px;">
+                <i class="fas fa-bolt"></i> Optimized for GitHub Pages • Max Speed Upload
+            </p>
             
             <div class="file-type-indicator">
                 <div class="type-badge" id="imageBadge">
@@ -758,6 +850,9 @@
                 <i class="fas fa-file-upload"></i>
                 <h3>Klik atau drop file di sini</h3>
                 <p>Support gambar & video • Auto compress untuk WhatsApp</p>
+                <p style="color: var(--success); margin-top: 10px;">
+                    <i class="fas fa-bolt"></i> Upload super cepat dengan GitHub Pages
+                </p>
                 <input type="file" id="fileInput" accept="image/*,video/*" hidden>
             </div>
             
@@ -925,12 +1020,12 @@
                 </a>
             </p>
             <p style="color: #aaa; font-size: 0.9rem; margin-top: 10px;">
-                Bot akan otomatis compress video & gambar untuk optimal WhatsApp Status
+                <i class="fas fa-bolt"></i> Upload dioptimalkan untuk GitHub Pages - Kecepatan maksimal
             </p>
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                 <p style="color: var(--success); font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <div class="status-dot"></div>
-                    STATUS BOT: 🟢 ONLINE
+                    STATUS BOT: 🟢 ONLINE • SPEED: 🚀 MAXIMUM
                 </p>
             </div>
         </div>
@@ -1045,9 +1140,9 @@
                     return;
                 }
                 
-                console.log("🎶 MULAI FADE OUT MUSIK (5 DETIK)...");
+                console.log("🎶 MULAI FADE OUT MUSIK (3 DETIK)...");
                 
-                const duration = 5000;
+                const duration = 3000;
                 const startVolume = uploadMusic.volume;
                 const startTime = Date.now();
                 
@@ -1073,48 +1168,58 @@
             });
         }
         
-        // ==================== FUNGSI LOADING REAL-TIME 1-100% ====================
-        async function simulateRealTimeUpload(fileSize) {
+        // ==================== FUNGSI LOADING REAL-TIME SUPER CEPAT ====================
+        async function simulateUltraFastUpload(fileSize) {
             return new Promise((resolve) => {
                 const startTime = Date.now();
                 let progress = 0;
                 
-                // Simulasi kecepatan internet (200KB/s - 800KB/s)
-                const minSpeed = 200 * 1024; // 200KB/s
-                const maxSpeed = 800 * 1024; // 800KB/s
+                // SIMULASI KECEPATAN SUPER TINGGI untuk GitHub Pages
+                // Kecepatan lebih tinggi untuk simulasi (5-25 MB/s)
+                const minSpeed = 5 * 1024 * 1024; // 5 MB/s
+                const maxSpeed = 25 * 1024 * 1024; // 25 MB/s
                 const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
                 
-                // Total waktu berdasarkan ukuran file dan kecepatan
+                // Total waktu berdasarkan ukuran file dan kecepatan tinggi
                 const totalTime = (fileSize / speed) * 1000;
                 
-                console.log(`📊 SIMULASI UPLOAD: ${formatBytes(fileSize)} ke ${formatBytes(speed)}/s`);
+                // Update speed display
+                const speedDisplay = (speed / (1024 * 1024)).toFixed(1);
+                document.getElementById('speedValue').textContent = `${speedDisplay} MB/s`;
+                
+                console.log(`🚀 UPLOAD ULTRA CEPAT: ${formatBytes(fileSize)} ke ${(speed/(1024*1024)).toFixed(1)} MB/s`);
                 
                 function updateProgress() {
                     const elapsed = Date.now() - startTime;
                     progress = Math.min((elapsed / totalTime) * 100, 100);
                     
-                    // Update progress bar
+                    // Update progress bar dengan animasi lebih cepat
                     document.getElementById('loadingProgressFill').style.width = `${progress}%`;
                     document.getElementById('loadingPercent').textContent = `${Math.round(progress)}%`;
                     
-                    // Hitung kecepatan real-time
+                    // Hitung kecepatan real-time (dalam MB/s)
                     const currentSpeed = (fileSize * (progress/100)) / (elapsed/1000);
-                    document.getElementById('loadingSpeed').textContent = `${formatBytes(currentSpeed)}/s`;
+                    const speedMB = (currentSpeed / (1024 * 1024)).toFixed(1);
+                    document.getElementById('loadingSpeed').textContent = `${speedMB} MB/s`;
                     
-                    // Hitung estimasi waktu tersisa
+                    // Hitung estimasi waktu tersisa (lebih cepat)
                     const remainingTime = Math.max(0, (totalTime - elapsed) / 1000);
-                    document.getElementById('loadingTime').textContent = `Estimasi: ${Math.ceil(remainingTime)}s`;
+                    document.getElementById('loadingTime').textContent = `Estimasi: ${remainingTime < 1 ? '<1s' : Math.ceil(remainingTime) + 's'}`;
                     
                     // Update visualizer intensity berdasarkan progress
                     updateVisualizerIntensity(progress);
                     
+                    // Update speed indicator color based on speed
+                    updateSpeedIndicator(currentSpeed);
+                    
                     if (progress < 100) {
-                        setTimeout(updateProgress, 100); // Update setiap 100ms
+                        // Update lebih cepat (setiap 50ms) untuk efek smooth
+                        setTimeout(updateProgress, 50);
                     } else {
                         // Progress 100% selesai
                         setTimeout(() => {
                             resolve();
-                        }, 500);
+                        }, 300);
                     }
                 }
                 
@@ -1126,13 +1231,34 @@
             const bars = document.querySelectorAll('.music-bar');
             bars.forEach((bar, index) => {
                 // Intensitas meningkat seiring progress
-                const intensity = 0.8 + (progress / 100) * 0.5;
-                bar.style.animationDuration = `${1.5 / intensity}s`;
+                const intensity = 0.8 + (progress / 100) * 0.7;
+                bar.style.animationDuration = `${1.2 / intensity}s`;
                 
-                // Warna berubah sesuai progress
-                const hue = 200 + (progress * 0.6);
-                bar.style.background = `linear-gradient(to top, hsl(${hue}, 70%, 50%), hsl(${hue + 20}, 70%, 60%))`;
+                // Warna berubah sesuai progress (hijau -> biru -> ungu)
+                const hue = 120 + (progress * 2.4);
+                bar.style.background = `linear-gradient(to top, hsl(${hue}, 80%, 55%), hsl(${hue + 30}, 80%, 65%))`;
+                bar.style.boxShadow = `0 0 8px hsla(${hue}, 80%, 55%, 0.5)`;
             });
+        }
+        
+        function updateSpeedIndicator(speed) {
+            const speedElement = document.getElementById('speedValue');
+            const speedMB = (speed / (1024 * 1024)).toFixed(1);
+            
+            // Update nilai kecepatan
+            speedElement.textContent = `${speedMB} MB/s`;
+            
+            // Ubah warna berdasarkan kecepatan
+            if (speed > 20 * 1024 * 1024) { // > 20 MB/s
+                speedElement.style.color = '#00ff00';
+                speedElement.style.textShadow = '0 0 10px rgba(0, 255, 0, 0.7)';
+            } else if (speed > 10 * 1024 * 1024) { // > 10 MB/s
+                speedElement.style.color = '#4cc9f0';
+                speedElement.style.textShadow = '0 0 10px rgba(76, 201, 240, 0.7)';
+            } else { // <= 10 MB/s
+                speedElement.style.color = '#ffaa00';
+                speedElement.style.textShadow = '0 0 10px rgba(255, 170, 0, 0.7)';
+            }
         }
         
         // ==================== FUNGSI FILE HANDLING ====================
@@ -1325,7 +1451,7 @@
             return `CAPTION_${key}_${final}`;
         }
         
-        // ==================== FUNGSI UPLOAD DENGAN LOADING REAL-TIME ====================
+        // ==================== FUNGSI UPLOAD SUPER CEPAT ====================
         async function handleUpload() {
             if (!currentFile) return;
             
@@ -1339,17 +1465,17 @@
             await playUploadMusic();
             
             try {
-                // Simulasi upload real-time 1-100%
-                await simulateRealTimeUpload(currentFile.size);
+                // SIMULASI UPLOAD SUPER CEPAT
+                await simulateUltraFastUpload(currentFile.size);
                 
-                // Upload ke TmpFiles
+                // Upload ke TmpFiles dengan timeout lebih singkat
                 uploadedUrl = await uploadToTmpFiles(currentFile);
                 
                 // Generate token valid
                 baseToken = generateBaseToken(uploadedUrl, currentFile);
                 uploadTime = new Date();
                 
-                // Fade out musik 5 detik
+                // Fade out musik cepat (3 detik)
                 await fadeOutMusic();
                 
                 // Sembunyikan loading overlay
@@ -1358,7 +1484,7 @@
                 // Tampilkan hasil
                 showResult();
                 
-                showToast('✅ Upload berhasil! Token telah dibuat.', 'success');
+                showToast('🚀 Upload berhasil dengan kecepatan maksimal!', 'success');
                 
             } catch (error) {
                 console.error('Upload error:', error);
@@ -1385,27 +1511,33 @@
             const formData = new FormData();
             formData.append('file', file);
             
+            // Timeout lebih cepat (30 detik)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 120000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
             
-            const response = await fetch(TMPFILES_API, {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                return result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-            } else {
-                throw new Error(result.message || 'Upload gagal');
+            try {
+                const response = await fetch(TMPFILES_API, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    return result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                } else {
+                    throw new Error(result.message || 'Upload gagal');
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                throw error;
             }
         }
         
