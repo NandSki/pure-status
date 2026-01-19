@@ -36,7 +36,88 @@
             margin: 0 auto;
         }
         
-        /* Notebook */
+        /* ========== LOADING OVERLAY MUSIK ========== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .music-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 80px;
+            margin-bottom: 30px;
+        }
+        
+        .music-bar {
+            width: 10px;
+            background: linear-gradient(to top, #4361ee, #4cc9f0);
+            border-radius: 5px;
+            animation: musicWave 1.5s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        
+        .music-bar:nth-child(1) { 
+            animation-delay: 0.1s; 
+            height: 30px; 
+        }
+        .music-bar:nth-child(2) { 
+            animation-delay: 0.3s; 
+            height: 50px; 
+        }
+        .music-bar:nth-child(3) { 
+            animation-delay: 0.5s; 
+            height: 70px; 
+        }
+        .music-bar:nth-child(4) { 
+            animation-delay: 0.7s; 
+            height: 50px; 
+        }
+        .music-bar:nth-child(5) { 
+            animation-delay: 0.9s; 
+            height: 30px; 
+        }
+        
+        @keyframes musicWave {
+            0%, 100% { 
+                transform: scaleY(0.8); 
+            }
+            50% { 
+                transform: scaleY(1.2); 
+            }
+        }
+        
+        .fade-out {
+            animation: fadeOutEffect 5s ease-out forwards !important;
+        }
+        
+        @keyframes fadeOutEffect {
+            0% { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+            70% { 
+                opacity: 0.3; 
+                transform: scale(0.95); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0.9); 
+            }
+        }
+        
+        /* ========== NOTEBOOK ========== */
         .notebook {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
@@ -566,6 +647,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- MUSIK AUDIO -->
+    <audio id="uploadMusic" preload="auto" style="display: none;">
+        <source src="https://github.com/NandSki/ONLY-RAW/raw/refs/heads/main/tek%20it.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="music-visualizer" id="musicVisualizer">
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+        </div>
+        <h3 style="color: #4cc9f0; margin: 20px 0;">Upload dalam proses...</h3>
+        <p style="color: #aaa;">🎵 Musik auto-play • Fade out 5 detik</p>
+    </div>
+
     <div class="container">
         <!-- Notebook -->
         <div class="notebook" id="notebook">
@@ -822,7 +921,7 @@
         const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
         const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
         
-        // ==================== VARIABEL ====================
+        // ==================== VARIABEL MUSIK ====================
         let currentFile = null;
         let baseToken = null;
         let captionToken = null;
@@ -830,6 +929,74 @@
         let uploadedUrl = null;
         let imageRotation = 0;
         let uploadTime = null;
+        
+        // Sistem Musik
+        let isMusicPlaying = false;
+        const uploadMusic = document.getElementById('uploadMusic');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        uploadMusic.volume = 0.3; // Volume 30%
+        uploadMusic.loop = true;  // Loop otomatis
+        
+        // ==================== FUNGSI MUSIK ====================
+        async function playUploadMusic() {
+            try {
+                if (!isMusicPlaying) {
+                    await uploadMusic.play();
+                    isMusicPlaying = true;
+                    console.log("🎵 MUSIK AUTO-PLAY AKTIF");
+                }
+            } catch (error) {
+                console.log("⚠️ Auto-play diblokir browser, butuh interaksi user");
+            }
+        }
+        
+        async function fadeOutMusic() {
+            return new Promise((resolve) => {
+                if (!isMusicPlaying) {
+                    resolve();
+                    return;
+                }
+                
+                console.log("🎶 MULAI FADE OUT MUSIK (5 DETIK)...");
+                
+                const duration = 5000; // 5 DETIK
+                const startVolume = uploadMusic.volume;
+                const startTime = Date.now();
+                
+                // Animasi visualizer fade out
+                const visualizer = document.getElementById('musicVisualizer');
+                visualizer.classList.add('fade-out');
+                
+                // Fungsi fade step
+                function fadeStep() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Kurangi volume secara linear
+                    uploadMusic.volume = startVolume * (1 - progress);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeStep);
+                    } else {
+                        // Stop musik setelah fade
+                        uploadMusic.pause();
+                        uploadMusic.currentTime = 0;
+                        uploadMusic.volume = 0.3; // Reset volume
+                        isMusicPlaying = false;
+                        
+                        // Reset visualizer
+                        setTimeout(() => {
+                            visualizer.classList.remove('fade-out');
+                        }, 100);
+                        
+                        console.log("🔇 MUSIK FADE OUT SELESAI");
+                        resolve();
+                    }
+                }
+                
+                fadeStep();
+            });
+        }
         
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', () => {
@@ -990,6 +1157,123 @@
             }
         }
         
+        // ==================== FUNGSI UPLOAD DENGAN MUSIK ====================
+        async function handleUpload() {
+            if (!currentFile) return;
+            
+            // Disable button
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+            
+            // 1. Tampilkan loading overlay dengan musik
+            loadingOverlay.style.display = 'flex';
+            
+            // 2. Mainkan musik
+            await playUploadMusic();
+            
+            // Show progress
+            const progressContainer = document.getElementById('progressContainer');
+            progressContainer.classList.add('show');
+            updateProgress(0, 'Mempersiapkan upload...');
+            
+            try {
+                // Upload ke TmpFiles.org
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                
+                updateProgress(30, 'Mengupload ke server...');
+                
+                const response = await fetch(TMPFILES_API, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                updateProgress(80, 'Memproses hasil...');
+                
+                if (result.status === 'success') {
+                    uploadedUrl = result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                    
+                    // Generate token dasar
+                    baseToken = generateBaseToken(uploadedUrl, currentFile);
+                    uploadTime = new Date();
+                    
+                    updateProgress(100, 'Upload selesai!');
+                    
+                    // 3. Fade out musik 5 detik
+                    await fadeOutMusic();
+                    
+                    // 4. Sembunyikan loading overlay
+                    loadingOverlay.style.display = 'none';
+                    
+                    // Tunggu sebentar
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Show result
+                    showResult();
+                    
+                    showToast('✅ Upload berhasil! Musik fade out smooth.', 'success');
+                    
+                } else {
+                    throw new Error(result.message || 'Upload gagal');
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                
+                // Stop musik jika error
+                if (isMusicPlaying) {
+                    uploadMusic.pause();
+                    uploadMusic.currentTime = 0;
+                    isMusicPlaying = false;
+                }
+                
+                // Sembunyikan loading overlay
+                loadingOverlay.style.display = 'none';
+                
+                let errorMessage = '❌ Upload gagal: ';
+                if (error.name === 'AbortError') {
+                    errorMessage += 'Timeout - Server terlalu lama merespons';
+                } else if (error.message.includes('HTTP')) {
+                    errorMessage += error.message;
+                } else {
+                    errorMessage += 'Koneksi bermasalah';
+                }
+                
+                showToast(errorMessage, 'error');
+                
+                // Reset button
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-key"></i> Upload & Generate Token';
+            } finally {
+                // Hide progress
+                progressContainer.classList.remove('show');
+                updateProgress(0, '');
+            }
+        }
+        
+        function updateProgress(percent, text) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const progressPercent = document.getElementById('progressPercent');
+            
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = text;
+            progressPercent.textContent = `${Math.round(percent)}%`;
+        }
+        
         // ==================== FUNGSI PREVIEW CONTROL ====================
         function rotateImage(degrees) {
             imageRotation += degrees;
@@ -1083,101 +1367,6 @@
             
             // Tambahkan key di depan untuk decoding nanti
             return `CAPTION_${key}_${final}`;
-        }
-        
-        // ==================== FUNGSI UPLOAD KE TMPFILES ====================
-        async function handleUpload() {
-            if (!currentFile) return;
-            
-            // Disable button
-            const uploadBtn = document.getElementById('uploadBtn');
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
-            
-            // Show progress
-            const progressContainer = document.getElementById('progressContainer');
-            progressContainer.classList.add('show');
-            updateProgress(0, 'Mempersiapkan upload...');
-            
-            try {
-                // Upload ke TmpFiles.org
-                const formData = new FormData();
-                formData.append('file', currentFile);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000);
-                
-                updateProgress(30, 'Mengupload ke server...');
-                
-                const response = await fetch(TMPFILES_API, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                updateProgress(80, 'Memproses hasil...');
-                
-                if (result.status === 'success') {
-                    uploadedUrl = result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-                    
-                    // Generate token dasar
-                    baseToken = generateBaseToken(uploadedUrl, currentFile);
-                    uploadTime = new Date();
-                    
-                    updateProgress(100, 'Upload selesai!');
-                    
-                    // Tunggu sebentar
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // Show result
-                    showResult();
-                    
-                    showToast('✅ Upload berhasil! Token telah dibuat.', 'success');
-                    
-                } else {
-                    throw new Error(result.message || 'Upload gagal');
-                }
-                
-            } catch (error) {
-                console.error('Upload error:', error);
-                
-                let errorMessage = '❌ Upload gagal: ';
-                if (error.name === 'AbortError') {
-                    errorMessage += 'Timeout - Server terlalu lama merespons';
-                } else if (error.message.includes('HTTP')) {
-                    errorMessage += error.message;
-                } else {
-                    errorMessage += 'Koneksi bermasalah';
-                }
-                
-                showToast(errorMessage, 'error');
-                
-                // Reset button
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = '<i class="fas fa-key"></i> Upload & Generate Token';
-            } finally {
-                // Hide progress
-                progressContainer.classList.remove('show');
-                updateProgress(0, '');
-            }
-        }
-        
-        function updateProgress(percent, text) {
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            const progressPercent = document.getElementById('progressPercent');
-            
-            progressFill.style.width = `${percent}%`;
-            progressText.textContent = text;
-            progressPercent.textContent = `${Math.round(percent)}%`;
         }
         
         // ==================== FUNGSI GENERATE TOKEN ====================
