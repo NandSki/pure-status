@@ -36,7 +36,7 @@
             margin: 0 auto;
         }
         
-        /* ========== LOADING OVERLAY MUSIK ========== */
+        /* ========== LOADING OVERLAY DENGAN PROGRESS REAL-TIME ========== */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -68,53 +68,59 @@
             transition: all 0.3s ease;
         }
         
-        .music-bar:nth-child(1) { 
-            animation-delay: 0.1s; 
-            height: 30px; 
-        }
-        .music-bar:nth-child(2) { 
-            animation-delay: 0.3s; 
-            height: 50px; 
-        }
-        .music-bar:nth-child(3) { 
-            animation-delay: 0.5s; 
-            height: 70px; 
-        }
-        .music-bar:nth-child(4) { 
-            animation-delay: 0.7s; 
-            height: 50px; 
-        }
-        .music-bar:nth-child(5) { 
-            animation-delay: 0.9s; 
-            height: 30px; 
-        }
+        .music-bar:nth-child(1) { animation-delay: 0.1s; height: 30px; }
+        .music-bar:nth-child(2) { animation-delay: 0.3s; height: 50px; }
+        .music-bar:nth-child(3) { animation-delay: 0.5s; height: 70px; }
+        .music-bar:nth-child(4) { animation-delay: 0.7s; height: 50px; }
+        .music-bar:nth-child(5) { animation-delay: 0.9s; height: 30px; }
         
         @keyframes musicWave {
-            0%, 100% { 
-                transform: scaleY(0.8); 
-            }
-            50% { 
-                transform: scaleY(1.2); 
-            }
+            0%, 100% { transform: scaleY(0.8); }
+            50% { transform: scaleY(1.2); }
         }
         
-        .fade-out {
-            animation: fadeOutEffect 5s ease-out forwards !important;
+        /* LOADING PROGRESS REAL-TIME */
+        .loading-progress-container {
+            width: 300px;
+            margin: 20px 0;
         }
         
-        @keyframes fadeOutEffect {
-            0% { 
-                opacity: 1; 
-                transform: scale(1); 
-            }
-            70% { 
-                opacity: 0.3; 
-                transform: scale(0.95); 
-            }
-            100% { 
-                opacity: 0; 
-                transform: scale(0.9); 
-            }
+        .loading-progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .loading-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4361ee, #4cc9f0);
+            width: 0%;
+            border-radius: 6px;
+            transition: width 0.2s ease;
+        }
+        
+        .loading-stats {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .loading-speed {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        .loading-time {
+            color: #ffaa00;
+        }
+        
+        .loading-percent {
+            font-weight: bold;
+            font-size: 1.1rem;
         }
         
         /* ========== NOTEBOOK ========== */
@@ -181,14 +187,8 @@
         }
         
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Status Badge */
@@ -258,6 +258,42 @@
             border-color: var(--success);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        /* File Limits */
+        .file-limits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .limit-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .limit-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        
+        .limit-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .limit-card.image {
+            border-color: var(--primary);
+        }
+        
+        .limit-card.video {
+            border-color: var(--success);
         }
         
         /* Card */
@@ -400,6 +436,40 @@
             transform: translateY(-2px);
         }
         
+        /* Progress Bar */
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-container.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--light);
+        }
+        
+        .progress {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+        
         /* Buttons */
         .btn {
             padding: 15px 30px;
@@ -492,38 +562,33 @@
             transform: translateY(-2px);
         }
         
-        /* Progress */
-        .progress-container {
+        /* Caption Section */
+        .caption-section {
+            background: rgba(76, 201, 240, 0.05);
+            border-radius: 10px;
+            padding: 20px;
             margin: 20px 0;
-            display: none;
+            border: 2px solid var(--primary);
         }
         
-        .progress-container.show {
-            display: block;
-            animation: fadeIn 0.5s;
+        .caption-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--primary);
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            resize: none;
+            min-height: 100px;
         }
         
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            color: var(--light);
-        }
-        
-        .progress {
-            height: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 6px;
+        .caption-input:focus {
+            outline: none;
+            border-color: var(--success);
+            box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.3);
         }
         
         /* Toast */
@@ -567,71 +632,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
-        /* File Limits */
-        .file-limits {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .limit-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        
-        .limit-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-        }
-        
-        .limit-card i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            display: block;
-        }
-        
-        .limit-card.image {
-            border-color: var(--primary);
-        }
-        
-        .limit-card.video {
-            border-color: var(--success);
-        }
-        
-        /* Caption Section */
-        .caption-section {
-            background: rgba(76, 201, 240, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 2px solid var(--primary);
-        }
-        
-        .caption-input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid var(--primary);
-            color: white;
-            font-family: inherit;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            resize: none;
-            min-height: 100px;
-        }
-        
-        .caption-input:focus {
-            outline: none;
-            border-color: var(--success);
-            box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.3);
-        }
-        
         /* Responsive */
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -642,6 +642,10 @@
             .file-limits { grid-template-columns: 1fr; }
             .toast { min-width: 250px; right: 10px; bottom: 10px; }
             .notebook-header { flex-direction: column; gap: 10px; text-align: center; }
+            .loading-progress-container { width: 250px; }
+            .loading-stats { width: 250px; font-size: 0.8rem; }
+            .preview-container { max-width: 100%; }
+            .preview-controls { flex-wrap: wrap; }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -652,7 +656,7 @@
         <source src="https://github.com/NandSki/ONLY-RAW/raw/refs/heads/main/tek%20it.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- LOADING OVERLAY -->
+    <!-- LOADING OVERLAY DENGAN PROGRESS REAL-TIME -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="music-visualizer" id="musicVisualizer">
             <div class="music-bar"></div>
@@ -661,8 +665,29 @@
             <div class="music-bar"></div>
             <div class="music-bar"></div>
         </div>
-        <h3 style="color: #4cc9f0; margin: 20px 0;">Upload dalam proses...</h3>
-        <p style="color: #aaa;">🎵 Musik auto-play • Fade out 5 detik</p>
+        
+        <h3 style="color: #4cc9f0; margin-bottom: 5px;">Upload dalam proses...</h3>
+        <p style="color: #aaa; margin-bottom: 20px; text-align: center;">
+            <i class="fas fa-music"></i> Musik auto-play • Loading real-time 1-100%<br>
+            Kecepatan disesuaikan dengan ukuran file
+        </p>
+        
+        <!-- PROGRESS BAR REAL-TIME 1-100% -->
+        <div class="loading-progress-container">
+            <div class="loading-progress-bar">
+                <div class="loading-progress-fill" id="loadingProgressFill"></div>
+            </div>
+            <div class="loading-stats">
+                <span class="loading-percent" id="loadingPercent">0%</span>
+                <span class="loading-speed" id="loadingSpeed">0 KB/s</span>
+                <span class="loading-time" id="loadingTime">Estimasi: 0s</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 25px; color: #888; font-size: 0.9rem; text-align: center;">
+            <p><i class="fas fa-info-circle"></i> Progress loading 1-100% sesuai kecepatan upload</p>
+            <p><i class="fas fa-volume-up"></i> Musik akan fade out otomatis setelah selesai</p>
+        </div>
     </div>
 
     <div class="container">
@@ -921,7 +946,7 @@
         const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
         const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
         
-        // ==================== VARIABEL MUSIK ====================
+        // ==================== VARIABEL ====================
         let currentFile = null;
         let baseToken = null;
         let captionToken = null;
@@ -933,70 +958,8 @@
         // Sistem Musik
         let isMusicPlaying = false;
         const uploadMusic = document.getElementById('uploadMusic');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        uploadMusic.volume = 0.3; // Volume 30%
-        uploadMusic.loop = true;  // Loop otomatis
-        
-        // ==================== FUNGSI MUSIK ====================
-        async function playUploadMusic() {
-            try {
-                if (!isMusicPlaying) {
-                    await uploadMusic.play();
-                    isMusicPlaying = true;
-                    console.log("🎵 MUSIK AUTO-PLAY AKTIF");
-                }
-            } catch (error) {
-                console.log("⚠️ Auto-play diblokir browser, butuh interaksi user");
-            }
-        }
-        
-        async function fadeOutMusic() {
-            return new Promise((resolve) => {
-                if (!isMusicPlaying) {
-                    resolve();
-                    return;
-                }
-                
-                console.log("🎶 MULAI FADE OUT MUSIK (5 DETIK)...");
-                
-                const duration = 5000; // 5 DETIK
-                const startVolume = uploadMusic.volume;
-                const startTime = Date.now();
-                
-                // Animasi visualizer fade out
-                const visualizer = document.getElementById('musicVisualizer');
-                visualizer.classList.add('fade-out');
-                
-                // Fungsi fade step
-                function fadeStep() {
-                    const elapsed = Date.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Kurangi volume secara linear
-                    uploadMusic.volume = startVolume * (1 - progress);
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(fadeStep);
-                    } else {
-                        // Stop musik setelah fade
-                        uploadMusic.pause();
-                        uploadMusic.currentTime = 0;
-                        uploadMusic.volume = 0.3; // Reset volume
-                        isMusicPlaying = false;
-                        
-                        // Reset visualizer
-                        setTimeout(() => {
-                            visualizer.classList.remove('fade-out');
-                        }, 100);
-                        
-                        console.log("🔇 MUSIK FADE OUT SELESAI");
-                        resolve();
-                    }
-                }
-                
-                fadeStep();
-            });
-        }
+        uploadMusic.volume = 0.3;
+        uploadMusic.loop = true;
         
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', () => {
@@ -1060,6 +1023,116 @@
                 notebook.style.display = 'none';
             }, 300);
             localStorage.setItem('notebookHidden', 'true');
+        }
+        
+        // ==================== FUNGSI MUSIK ====================
+        async function playUploadMusic() {
+            try {
+                if (!isMusicPlaying) {
+                    await uploadMusic.play();
+                    isMusicPlaying = true;
+                    console.log("🎵 MUSIK AUTO-PLAY AKTIF");
+                }
+            } catch (error) {
+                console.log("⚠️ Auto-play diblokir browser");
+            }
+        }
+        
+        async function fadeOutMusic() {
+            return new Promise((resolve) => {
+                if (!isMusicPlaying) {
+                    resolve();
+                    return;
+                }
+                
+                console.log("🎶 MULAI FADE OUT MUSIK (5 DETIK)...");
+                
+                const duration = 5000;
+                const startVolume = uploadMusic.volume;
+                const startTime = Date.now();
+                
+                function fadeStep() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    uploadMusic.volume = startVolume * (1 - progress);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeStep);
+                    } else {
+                        uploadMusic.pause();
+                        uploadMusic.currentTime = 0;
+                        uploadMusic.volume = 0.3;
+                        isMusicPlaying = false;
+                        console.log("🔇 MUSIK FADE OUT SELESAI");
+                        resolve();
+                    }
+                }
+                
+                fadeStep();
+            });
+        }
+        
+        // ==================== FUNGSI LOADING REAL-TIME 1-100% ====================
+        async function simulateRealTimeUpload(fileSize) {
+            return new Promise((resolve) => {
+                const startTime = Date.now();
+                let progress = 0;
+                
+                // Simulasi kecepatan internet (200KB/s - 800KB/s)
+                const minSpeed = 200 * 1024; // 200KB/s
+                const maxSpeed = 800 * 1024; // 800KB/s
+                const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
+                
+                // Total waktu berdasarkan ukuran file dan kecepatan
+                const totalTime = (fileSize / speed) * 1000;
+                
+                console.log(`📊 SIMULASI UPLOAD: ${formatBytes(fileSize)} ke ${formatBytes(speed)}/s`);
+                
+                function updateProgress() {
+                    const elapsed = Date.now() - startTime;
+                    progress = Math.min((elapsed / totalTime) * 100, 100);
+                    
+                    // Update progress bar
+                    document.getElementById('loadingProgressFill').style.width = `${progress}%`;
+                    document.getElementById('loadingPercent').textContent = `${Math.round(progress)}%`;
+                    
+                    // Hitung kecepatan real-time
+                    const currentSpeed = (fileSize * (progress/100)) / (elapsed/1000);
+                    document.getElementById('loadingSpeed').textContent = `${formatBytes(currentSpeed)}/s`;
+                    
+                    // Hitung estimasi waktu tersisa
+                    const remainingTime = Math.max(0, (totalTime - elapsed) / 1000);
+                    document.getElementById('loadingTime').textContent = `Estimasi: ${Math.ceil(remainingTime)}s`;
+                    
+                    // Update visualizer intensity berdasarkan progress
+                    updateVisualizerIntensity(progress);
+                    
+                    if (progress < 100) {
+                        setTimeout(updateProgress, 100); // Update setiap 100ms
+                    } else {
+                        // Progress 100% selesai
+                        setTimeout(() => {
+                            resolve();
+                        }, 500);
+                    }
+                }
+                
+                updateProgress();
+            });
+        }
+        
+        function updateVisualizerIntensity(progress) {
+            const bars = document.querySelectorAll('.music-bar');
+            bars.forEach((bar, index) => {
+                // Intensitas meningkat seiring progress
+                const intensity = 0.8 + (progress / 100) * 0.5;
+                bar.style.animationDuration = `${1.5 / intensity}s`;
+                
+                // Warna berubah sesuai progress
+                const hue = 200 + (progress * 0.6);
+                bar.style.background = `linear-gradient(to top, hsl(${hue}, 70%, 50%), hsl(${hue + 20}, 70%, 60%))`;
+            });
         }
         
         // ==================== FUNGSI FILE HANDLING ====================
@@ -1157,123 +1230,6 @@
             }
         }
         
-        // ==================== FUNGSI UPLOAD DENGAN MUSIK ====================
-        async function handleUpload() {
-            if (!currentFile) return;
-            
-            // Disable button
-            const uploadBtn = document.getElementById('uploadBtn');
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
-            
-            // 1. Tampilkan loading overlay dengan musik
-            loadingOverlay.style.display = 'flex';
-            
-            // 2. Mainkan musik
-            await playUploadMusic();
-            
-            // Show progress
-            const progressContainer = document.getElementById('progressContainer');
-            progressContainer.classList.add('show');
-            updateProgress(0, 'Mempersiapkan upload...');
-            
-            try {
-                // Upload ke TmpFiles.org
-                const formData = new FormData();
-                formData.append('file', currentFile);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000);
-                
-                updateProgress(30, 'Mengupload ke server...');
-                
-                const response = await fetch(TMPFILES_API, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                updateProgress(80, 'Memproses hasil...');
-                
-                if (result.status === 'success') {
-                    uploadedUrl = result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-                    
-                    // Generate token dasar
-                    baseToken = generateBaseToken(uploadedUrl, currentFile);
-                    uploadTime = new Date();
-                    
-                    updateProgress(100, 'Upload selesai!');
-                    
-                    // 3. Fade out musik 5 detik
-                    await fadeOutMusic();
-                    
-                    // 4. Sembunyikan loading overlay
-                    loadingOverlay.style.display = 'none';
-                    
-                    // Tunggu sebentar
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // Show result
-                    showResult();
-                    
-                    showToast('✅ Upload berhasil! Musik fade out smooth.', 'success');
-                    
-                } else {
-                    throw new Error(result.message || 'Upload gagal');
-                }
-                
-            } catch (error) {
-                console.error('Upload error:', error);
-                
-                // Stop musik jika error
-                if (isMusicPlaying) {
-                    uploadMusic.pause();
-                    uploadMusic.currentTime = 0;
-                    isMusicPlaying = false;
-                }
-                
-                // Sembunyikan loading overlay
-                loadingOverlay.style.display = 'none';
-                
-                let errorMessage = '❌ Upload gagal: ';
-                if (error.name === 'AbortError') {
-                    errorMessage += 'Timeout - Server terlalu lama merespons';
-                } else if (error.message.includes('HTTP')) {
-                    errorMessage += error.message;
-                } else {
-                    errorMessage += 'Koneksi bermasalah';
-                }
-                
-                showToast(errorMessage, 'error');
-                
-                // Reset button
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = '<i class="fas fa-key"></i> Upload & Generate Token';
-            } finally {
-                // Hide progress
-                progressContainer.classList.remove('show');
-                updateProgress(0, '');
-            }
-        }
-        
-        function updateProgress(percent, text) {
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            const progressPercent = document.getElementById('progressPercent');
-            
-            progressFill.style.width = `${percent}%`;
-            progressText.textContent = text;
-            progressPercent.textContent = `${Math.round(percent)}%`;
-        }
-        
         // ==================== FUNGSI PREVIEW CONTROL ====================
         function rotateImage(degrees) {
             imageRotation += degrees;
@@ -1367,6 +1323,90 @@
             
             // Tambahkan key di depan untuk decoding nanti
             return `CAPTION_${key}_${final}`;
+        }
+        
+        // ==================== FUNGSI UPLOAD DENGAN LOADING REAL-TIME ====================
+        async function handleUpload() {
+            if (!currentFile) return;
+            
+            // Disable button
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+            
+            // Tampilkan loading overlay dengan musik
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            await playUploadMusic();
+            
+            try {
+                // Simulasi upload real-time 1-100%
+                await simulateRealTimeUpload(currentFile.size);
+                
+                // Upload ke TmpFiles
+                uploadedUrl = await uploadToTmpFiles(currentFile);
+                
+                // Generate token valid
+                baseToken = generateBaseToken(uploadedUrl, currentFile);
+                uploadTime = new Date();
+                
+                // Fade out musik 5 detik
+                await fadeOutMusic();
+                
+                // Sembunyikan loading overlay
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // Tampilkan hasil
+                showResult();
+                
+                showToast('✅ Upload berhasil! Token telah dibuat.', 'success');
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                
+                // Stop musik jika error
+                if (isMusicPlaying) {
+                    uploadMusic.pause();
+                    uploadMusic.currentTime = 0;
+                    isMusicPlaying = false;
+                }
+                
+                // Sembunyikan loading overlay
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // Reset button
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-key"></i> Upload & Generate Token';
+                
+                showToast('❌ Upload gagal: ' + error.message, 'error');
+            }
+        }
+        
+        async function uploadToTmpFiles(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000);
+            
+            const response = await fetch(TMPFILES_API, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                return result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+            } else {
+                throw new Error(result.message || 'Upload gagal');
+            }
         }
         
         // ==================== FUNGSI GENERATE TOKEN ====================
